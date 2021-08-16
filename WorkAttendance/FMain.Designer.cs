@@ -88,7 +88,7 @@
             this.radioGroup1.Properties.Items.AddRange(new DevExpress.XtraEditors.Controls.RadioGroupItem[] {
             new DevExpress.XtraEditors.Controls.RadioGroupItem(((short)(1)), "打卡记录"),
             new DevExpress.XtraEditors.Controls.RadioGroupItem(((short)(2)), "月度汇总"),
-            new DevExpress.XtraEditors.Controls.RadioGroupItem(((short)(3)), "打卡记录+月度汇总")});
+            new DevExpress.XtraEditors.Controls.RadioGroupItem(((short)(3)), "每日统计")});
             this.radioGroup1.Size = new System.Drawing.Size(464, 54);
             this.radioGroup1.TabIndex = 3;
             this.radioGroup1.SelectedIndexChanged += new System.EventHandler(this.radioGroup1_SelectedIndexChanged);
