@@ -72,7 +72,9 @@ namespace WorkAttendance
 
                 if (radioGroup1.SelectedIndex == 0)
                 {
-                    Worksheet ws = spreadsheetControl1.Document.Worksheets[0];
+                    Workbook wb = new Workbook();
+                    Worksheet ws = wb.Worksheets[0];
+
                     ws.Name = "打卡记录";
                     ws.Cells[0, 0].SetValue("打卡记录 " + " 统计日期:" + string.Format("{0} 至 {1}", D1, D2));
                     ws.Cells[0, 0].Font.Bold = true;
@@ -126,7 +128,7 @@ namespace WorkAttendance
 
                     foreach (String keys in morningHashtable.Keys)
                     {
-                        ws.Cells[row_number, 1].SetValue(keys);
+                        ws.Cells[row_number, 0].SetValue(keys);
                         List<DateTime> morningtimelist = (List<DateTime>)morningHashtable[keys];
                         List<DateTime> afternoontimelist = (List<DateTime>)afternoonHashTable[keys];
                         int morningattend = -1;
@@ -147,7 +149,7 @@ namespace WorkAttendance
                             {
                                 if (morningtimelist[morningattend].Day.Equals(DList[i].Day)&& morningtimelist[morningattend].Month.Equals(DList[i].Month))
                                 {
-                                    cell = morningtimelist[morningattend].Hour + ":" + morningtimelist[morningattend].Minute;
+                                    cell = morningtimelist[morningattend].ToShortTimeString();// + ":" + morningtimelist[morningattend].Minute;
                                     morningattend--;
                                 }
                             }
@@ -156,7 +158,7 @@ namespace WorkAttendance
                             {
                                 if (afternoontimelist[afternoonattend].Day.Equals(DList[i].Day)&& afternoontimelist[afternoonattend].Month.Equals(DList[i].Month))
                                 {
-                                    cell = cell + afternoontimelist[afternoonattend].Hour + ":" + afternoontimelist[afternoonattend].Minute;
+                                    cell = cell + afternoontimelist[afternoonattend].ToShortTimeString();// + ":" + afternoontimelist[afternoonattend].Minute;
                                     afternoonattend--;
                                 }
                                 else
@@ -172,9 +174,10 @@ namespace WorkAttendance
                         row_number++;
                     }
 
-                    MessageBox.Show("aaaa");
 
                     // 从这里开始
+                    spreadsheetControl1.Document.Worksheets[0].CopyFrom(ws);
+                    spreadsheetControl1.Document.Worksheets[0].Name = "打卡时间表";
                 }
                 if (radioGroup1.SelectedIndex == 1 || radioGroup1.SelectedIndex == 2)
                 {
