@@ -90,10 +90,11 @@ namespace WorkAttendance
                     ws.MergeCells(cellrange2);
 
                     //尝试更改一整个range里单元格的border
-                    //cellrange1.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Medium;
+                    //cellrange1.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Thick;
                     //cellrange2.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Medium;
-                    //Formatting cellrange1formatting = cellrange1.BeginUpdateFormatting();
-                    //cellrange1formatting.Borders.BottomBorder.Color = Color.Black;
+                    Formatting cellrange1formatting = cellrange1.BeginUpdateFormatting();
+                    cellrange1formatting.Borders.BottomBorder.LineStyle = BorderLineStyle.Thin;
+                    //cellrange1formatting.Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
 
                     ws.Cells[1, 0].SetValue(string.Format("生成时间：{0}", DateTime.Now.ToString()));
                     ws.Cells[1, 0].Font.Size = 14;
@@ -102,13 +103,25 @@ namespace WorkAttendance
                     ws.Cells[1, 0].Borders.TopBorder.Color = Color.Black;
                     ws.Cells[1, 0].Borders.BottomBorder.Color = Color.Black;
                     //cellrange2.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Medium;
-                    
+                    Formatting cellrange2formatting = cellrange2.BeginUpdateFormatting();
+                    cellrange2formatting.Borders.BottomBorder.LineStyle = BorderLineStyle.Thin;
+                    //cellrange2formatting.Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
+
                     ws.Cells[2, 0].SetValue("姓名");
                     ws.Cells[2, 0].Font.Bold = true;
+                    ws.Cells[2, 0].FillColor = Color.FromArgb(0xffffcc);
+                    ws.Cells[2, 0].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
+
                     ws.Cells[2, 1].SetValue("部门");
                     ws.Cells[2, 1].Font.Bold = true;
+                    ws.Cells[2, 1].FillColor = Color.FromArgb(0xffffcc);
+                    ws.Cells[2, 1].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
+
                     ws.Cells[2, 2].SetValue("工号");
                     ws.Cells[2, 2].Font.Bold = true;
+                    ws.Cells[2, 2].FillColor = Color.FromArgb(0xffffcc);
+                    ws.Cells[2, 2].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
+
                     //此列起是日期
                     for (int k=0;k<DList.Count;k++)
                     {
@@ -118,17 +131,29 @@ namespace WorkAttendance
                         {   
                             ws.Cells[2, 3 + k].FillColor = Color.Green;
                         }
+                        else
+                        {
+                            ws.Cells[2, 3 + k].FillColor = Color.FromArgb(0xffffcc);
+                        }
+                        ws.Cells[2, 3 + k].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
                     }
 
                     Hashtable morningHashtable = timeHashtableHelper(DTMorning);
 
                     Hashtable afternoonHashTable = timeHashtableHelper(DTAfternoon);
 
+                    Hashtable yg_info = yg_info_helper();
+
                     int row_number = 3;
 
                     foreach (String keys in morningHashtable.Keys)
                     {
                         ws.Cells[row_number, 0].SetValue(keys);
+                        // 你亲爱的记得推galgame小助手：本段代码用于添加部门和员工号
+                        List<string> info_list = (List<string>)yg_info[keys];
+                        ws.Cells[row_number, 1].SetValue(info_list[0]);
+                        ws.Cells[row_number, 2].SetValue(info_list[1]);
+
                         List<DateTime> morningtimelist = (List<DateTime>)morningHashtable[keys];
                         List<DateTime> afternoontimelist = (List<DateTime>)afternoonHashTable[keys];
                         int morningattend = -1;
@@ -244,6 +269,22 @@ namespace WorkAttendance
             }
 
             return timeHashtable;
+        }
+
+        private Hashtable yg_info_helper()
+        {
+            string sqlcommand = string.Format("SELECT realname, department, yg_no FROM [Wechat1].[dbo].[V_RealList] where CIO_Time>='{0} 0:00:00' AND CIO_Time<='{1} 23:59:59' group by realname, department, yg_no;", dateTimePicker1.Value.ToString("yyyy-MM-dd"), dateTimePicker2.Value.ToString("yyyy-MM-dd"));
+            DataTable dt = DAL.LoadData(sqlcommand);
+            Hashtable ht = new Hashtable();
+            for (int i=0;i<dt.Rows.Count;i++)
+            {
+                List<string> info_list = new List<string>();
+                info_list.Add(dt.Rows[i][1].ToString());
+                info_list.Add(dt.Rows[i][2].ToString());
+                ht.Add(dt.Rows[i][0], info_list);
+            }
+
+            return ht;
         }
     }
 }
