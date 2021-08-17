@@ -12,6 +12,7 @@ using System.Windows.Forms;
 using System.Collections;
 
 namespace WorkAttendance
+
 {
     public partial class FMain : Form
     {
@@ -104,7 +105,58 @@ namespace WorkAttendance
 
                     Hashtable afternoonHashTable = timeHashtableHelper(DTAfternoon);
 
+                    int row_number = 3;
+
+                    foreach (String keys in morningHashtable.Keys)
+                    {
+                        ws.Cells[row_number, 1].SetValue(keys);
+                        List<DateTime> morningtimelist = (List<DateTime>)morningHashtable[keys];
+                        List<DateTime> afternoontimelist = (List<DateTime>)afternoonHashTable[keys];
+                        int morningattend = -1;
+                        int afternoonattend = -1;
+                        if (morningtimelist != null)
+                        {
+                            morningattend = morningtimelist.Count-1;
+                        }
+                        if (afternoontimelist != null)
+                        {
+                            afternoonattend = afternoontimelist.Count-1;
+                        }
+
+                        for (int i = DList.Count-1; i>=0; i--)
+                        {
+                            String cell = "";
+                            if (morningattend >= 0)
+                            {
+                                if (morningtimelist[morningattend].Day.Equals(DList[i].Day)&& morningtimelist[morningattend].Month.Equals(DList[i].Month))
+                                {
+                                    cell = morningtimelist[morningattend].Hour + ":" + morningtimelist[morningattend].Minute;
+                                    morningattend--;
+                                }
+                            }
+                            cell = cell + "\n";
+                            if (afternoonattend >= 0)
+                            {
+                                if (afternoontimelist[afternoonattend].Day.Equals(DList[i].Day)&& afternoontimelist[afternoonattend].Month.Equals(DList[i].Month))
+                                {
+                                    cell = cell + afternoontimelist[afternoonattend].Hour + ":" + afternoontimelist[afternoonattend].Minute;
+                                    afternoonattend--;
+                                }
+                                else
+                                {
+                                    cell = cell + " ";
+                                }
+                            }
+                            
+                            ws.Cells.RowHeight = 200;
+                            ws.Cells.Alignment.WrapText = true;
+                            ws.Cells[row_number, 3 + i].SetValue(cell);
+                        }
+                        row_number++;
+                    }
+
                     MessageBox.Show("aaaa");
+
                     // 从这里开始
                 }
                 if (radioGroup1.SelectedIndex == 1 || radioGroup1.SelectedIndex == 2)
