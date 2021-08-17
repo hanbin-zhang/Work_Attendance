@@ -76,13 +76,30 @@ namespace WorkAttendance
                     ws.Cells[0, 0].SetValue("打卡记录 " + " 统计日期:" + string.Format("{0} 至 {1}", D1, D2));
                     ws.Cells[0, 0].Font.Bold = true;
                     ws.Cells[0, 0].Font.Size = 24;
-                    ws.Cells[0, 0].Font.Color = Color.FromArgb(008080);
+                    ws.Cells[0, 0].Fill.BackgroundColor = Color.FromArgb(0xccffff);
+                    ws.Cells[0, 0].Font.Color = Color.FromArgb(0x008080);
+                    ws.Cells[0, 0].Borders.BottomBorder.LineStyle = BorderLineStyle.Thick;
                     ws.FreezePanes(2, 0);
-                    ws.MergeCells(ws.Range[string.Format("A1:{0}1", excelColumnConverter(3+DList.Count))]);
-                    ws.MergeCells(ws.Range[string.Format("A2:{0}2", excelColumnConverter(3 + DList.Count))]);
+
+                    CellRange cellrange1 = ws.Range[string.Format("A1:{0}1", excelColumnConverter(3 + DList.Count))];
+                    CellRange cellrange2 = ws.Range[string.Format("A2:{0}2", excelColumnConverter(3 + DList.Count))];
+                    ws.MergeCells(cellrange1);
+                    ws.MergeCells(cellrange2);
+
+                    //尝试更改一整个range里单元格的border
+                    //cellrange1.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Medium;
+                    //cellrange2.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Medium;
+                    //Formatting cellrange1formatting = cellrange1.BeginUpdateFormatting();
+                    //cellrange1formatting.Borders.BottomBorder.Color = Color.Black;
 
                     ws.Cells[1, 0].SetValue(string.Format("生成时间：{0}", DateTime.Now.ToString()));
-
+                    ws.Cells[1, 0].Font.Size = 14;
+                    ws.Cells[1, 0].FillColor = Color.FromArgb(0xccffff);
+                    ws.Cells[1, 0].Font.Color = Color.FromArgb(0x008080);
+                    ws.Cells[1, 0].Borders.TopBorder.Color = Color.Black;
+                    ws.Cells[1, 0].Borders.BottomBorder.Color = Color.Black;
+                    //cellrange2.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Medium;
+                    
                     ws.Cells[2, 0].SetValue("姓名");
                     ws.Cells[2, 0].Font.Bold = true;
                     ws.Cells[2, 1].SetValue("部门");
@@ -104,7 +121,6 @@ namespace WorkAttendance
 
                     Hashtable afternoonHashTable = timeHashtableHelper(DTAfternoon);
 
-                    MessageBox.Show("aaaa");
                     // 从这里开始
                 }
                 if (radioGroup1.SelectedIndex == 1 || radioGroup1.SelectedIndex == 2)
