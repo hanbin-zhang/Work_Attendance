@@ -129,7 +129,7 @@ namespace WorkAttendance
                         ws.Cells[2, 3+k].SetValue(DList[k].Day + "(" + GetCNWeekday( DList[k]) + ")");
                         if (DList[k].DayOfWeek == DayOfWeek.Saturday || DList[k].DayOfWeek ==  DayOfWeek.Sunday)
                         {   
-                            ws.Cells[2, 3 + k].FillColor = Color.Green;
+                            ws.Cells[2, 3 + k].FillColor = Color.FromArgb(0xc9edd9);
                         }
                         else
                         {
