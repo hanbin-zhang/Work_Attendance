@@ -209,17 +209,17 @@ namespace WorkAttendance
                 if (radioGroup1.SelectedIndex == 1)
                 {
                     Hashtable ygStastisticInfo = new Hashtable();
-                    Hashtable ygeverydayInfo = new Hashtable();
-                    Hashtable yg_time_lookup_hashtable = new Hashtable();
-                    
-                    foreach(DateTime dt in DList)
-                    {
-                        yg_time_lookup_hashtable.Add(dt, new time_storer());
-                    }
+                    Hashtable ygalldaysInfo = new Hashtable();
+
 
                     
                     foreach(string name in yg_info.Keys) {
-                        Hashtable lookingUpTable = (Hashtable)yg_time_lookup_hashtable.Clone();
+                        Hashtable lookingUpTable = new Hashtable();
+
+                        foreach (DateTime dt in DList)
+                        {
+                            lookingUpTable.Add(dt, new time_storer());
+                        }
 
                         if (morningHashtable[name] != null)
                         {
@@ -246,15 +246,15 @@ namespace WorkAttendance
                         int late = 0;
                         int leave_early = 0;
                         int noCheckMorning = 0;
-                        int noCheckEvening = 0;
+                        int noCheckAfternoon = 0;
                         Hashtable everydayStatus = new Hashtable();
 
                         
                         foreach(DateTime dt in DList)
                         {
+                            time_storer ts = (time_storer)lookingUpTable[dt];
                             if (dt.DayOfWeek == DayOfWeek.Saturday || dt.DayOfWeek == DayOfWeek.Sunday)
                             {
-                                time_storer ts = (time_storer)lookingUpTable[dt];
                                 if (ts.morningTime != default(DateTime) || ts.afternoonTime != default(DateTime))
                                 {
                                     everydayStatus.Add(dt, "休息并打卡");
@@ -267,7 +267,71 @@ namespace WorkAttendance
                                     weekends += 1;
                                 }
                             }
+                            else
+                            {
+                                string morning_status = "";
+                                string afternoon_status = "";
+                                string final_status = "";
+
+                                if (ts.morningTime == default(DateTime) && ts.afternoonTime == default(DateTime))
+                                {
+                                    final_status = "旷工";
+                                }
+
+                                else {
+                                    if (ts.morningTime == default(DateTime))
+                                    {
+                                        morning_status = "上班缺卡";
+                                        noCheckMorning += 1;
+                                    }
+                                    else if (ts.morningTime.TimeOfDay > Convert.ToDateTime("08:30:00").TimeOfDay)
+                                    {
+                                        morning_status = "上班迟到";
+                                        late += 1;
+                                    }
+
+                                    if (ts.afternoonTime == default(DateTime))
+                                    {
+                                        afternoon_status = "下班缺卡";
+                                        noCheckAfternoon += 1;
+                                    }
+                                    else if (ts.afternoonTime.TimeOfDay < Convert.ToDateTime("17:00:00").TimeOfDay)
+                                    {
+                                        afternoon_status = "下班早退";
+                                        leave_early += 1;
+                                    }
+                                }
+                                if(final_status == "")
+                                {
+                                    attend += 1;
+                                    if (morning_status != "" && afternoon_status != "")
+                                    {
+                                        final_status = morning_status + "，" + afternoon_status;
+                                    }
+                                    else if (afternoon_status != "" || morning_status != "")
+                                    {
+                                        final_status = morning_status + afternoon_status;
+                                    }
+                                    else
+                                    {
+                                        final_status = "正常";
+                                    }
+                                }
+
+                                everydayStatus.Add(dt, final_status);
+                            }
                         }
+                        Hashtable stastistics = new Hashtable();
+
+                        stastistics.Add("attend", attend);
+                        stastistics.Add("weekends", weekends);
+                        stastistics.Add("late", late);
+                        stastistics.Add("leave_early", leave_early);
+                        stastistics.Add("noCheckMorning", noCheckMorning);
+                        stastistics.Add("noCheckAfternoon", noCheckAfternoon);
+
+                        ygalldaysInfo.Add(name, everydayStatus);
+                        ygStastisticInfo.Add(name, stastistics);
                     }
 
                     Workbook wb = new Workbook();
