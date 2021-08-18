@@ -47,7 +47,7 @@ namespace WorkAttendance
                     return;
 
             }
-           
+
             spreadsheetControl1.Document.CreateNewDocument();
             NeedSavePrompt = false;
 
@@ -69,6 +69,12 @@ namespace WorkAttendance
                     DList.Add(d);
                     d= d.AddDays(1);
                 }
+
+                Hashtable morningHashtable = timeHashtableHelper(DTMorning);
+
+                Hashtable afternoonHashTable = timeHashtableHelper(DTAfternoon);
+
+                Hashtable yg_info = yg_info_helper();
 
                 if (radioGroup1.SelectedIndex == 0)
                 {
@@ -138,11 +144,7 @@ namespace WorkAttendance
                         ws.Cells[2, 3 + k].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
                     }
 
-                    Hashtable morningHashtable = timeHashtableHelper(DTMorning);
-
-                    Hashtable afternoonHashTable = timeHashtableHelper(DTAfternoon);
-
-                    Hashtable yg_info = yg_info_helper();
+                    
 
                     int row_number = 3;
 
@@ -204,9 +206,72 @@ namespace WorkAttendance
                     spreadsheetControl1.Document.Worksheets[0].CopyFrom(ws);
                     spreadsheetControl1.Document.Worksheets[0].Name = "打卡时间表";
                 }
-                if (radioGroup1.SelectedIndex == 1 || radioGroup1.SelectedIndex == 2)
+                if (radioGroup1.SelectedIndex == 1)
                 {
-                    spreadsheetControl1.Document.Worksheets.Add("月度汇总");
+                    Hashtable ygStastisticInfo = new Hashtable();
+                    Hashtable ygeverydayInfo = new Hashtable();
+                    Hashtable yg_time_lookup_hashtable = new Hashtable();
+                    
+                    foreach(DateTime dt in DList)
+                    {
+                        yg_time_lookup_hashtable.Add(dt, new time_storer());
+                    }
+
+                    
+                    foreach(string name in yg_info.Keys) {
+                        Hashtable lookingUpTable = (Hashtable)yg_time_lookup_hashtable.Clone();
+
+                        if (morningHashtable[name] != null)
+                        {
+                            foreach (DateTime dt in (List<DateTime>)morningHashtable[name])
+                            {
+                                time_storer ts = (time_storer)lookingUpTable[dt.Date];
+                                ts.morningTime = dt;
+                                //lookingUpTable[dt.Date] = ts;
+                            }
+                        }
+
+                        if (afternoonHashTable[name] != null)
+                        {
+                            foreach (DateTime dt in (List<DateTime>)afternoonHashTable[name])
+                            {
+                                time_storer ts = (time_storer)lookingUpTable[dt.Date];
+                                ts.afternoonTime = dt;
+                                //lookingUpTable[dt.Date] = ts;
+                            }
+                        }
+
+                        int attend = 0;
+                        int weekends = 0;
+                        int late = 0;
+                        int leave_early = 0;
+                        int noCheckMorning = 0;
+                        int noCheckEvening = 0;
+                        Hashtable everydayStatus = new Hashtable();
+
+                        
+                        foreach(DateTime dt in DList)
+                        {
+                            if (dt.DayOfWeek == DayOfWeek.Saturday || dt.DayOfWeek == DayOfWeek.Sunday)
+                            {
+                                time_storer ts = (time_storer)lookingUpTable[dt];
+                                if (ts.morningTime != default(DateTime) || ts.afternoonTime != default(DateTime))
+                                {
+                                    everydayStatus.Add(dt, "休息并打卡");
+                                    weekends += 1;
+                                    attend += 1;
+                                }
+                                else
+                                {
+                                    everydayStatus.Add(dt, "休息");
+                                    weekends += 1;
+                                }
+                            }
+                        }
+                    }
+
+                    Workbook wb = new Workbook();
+                    Worksheet ws = wb.Worksheets[0];
                 }
 
                 NeedSavePrompt = true;
