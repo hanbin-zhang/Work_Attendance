@@ -83,13 +83,17 @@ namespace WorkAttendance
 
                     generateHeader0(ws, DList);
 
-                   
+                    ws.Rows[0].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
+                    ws.Rows[0].Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
+
+                    ws.Rows[1].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
+                    ws.Rows[1].Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
 
 
                     int row_number = 3;
 
                     foreach (String keys in morningHashtable.Keys)
-                    {
+                    {   
                         ws.Cells[row_number, 0].SetValue(keys);
                         // 你亲爱的记得推galgame小助手：本段代码用于添加部门和员工号
                         List<string> info_list = (List<string>)yg_info[keys];
@@ -138,6 +142,8 @@ namespace WorkAttendance
                             ws.Cells.Alignment.WrapText = true;
                             ws.Cells[row_number, 3 + i].SetValue(cell);
                         }
+                        ws.Rows[row_number].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
+                        ws.Rows[row_number].Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
                         row_number++;
                     }
 
@@ -145,6 +151,8 @@ namespace WorkAttendance
                     // 从这里开始
                     spreadsheetControl1.Document.Worksheets[0].CopyFrom(ws);
                     spreadsheetControl1.Document.Worksheets[0].Name = "打卡时间表";
+
+                    spreadsheetControl1.Options.Save.DefaultFileName = "打卡时间表-" + DateTime.Today.ToString("yyyyMMdd");
                 }
                 if (radioGroup1.SelectedIndex == 1)
                 {
@@ -346,7 +354,7 @@ namespace WorkAttendance
 
         private Hashtable yg_info_helper()
         {
-            string sqlcommand = string.Format("SELECT realname, department, yg_no FROM [Wechat].[dbo].[V_RealList] where CIO_Time>='{0} 0:00:00' AND CIO_Time<='{1} 23:59:59' group by realname, department, yg_no;", dateTimePicker1.Value.ToString("yyyy-MM-dd"), dateTimePicker2.Value.ToString("yyyy-MM-dd"));
+            string sqlcommand = string.Format("SELECT realname, department, yg_no FROM V_RealList where CIO_Time>='{0} 0:00:00' AND CIO_Time<='{1} 23:59:59' group by realname, department, yg_no;", dateTimePicker1.Value.ToString("yyyy-MM-dd"), dateTimePicker2.Value.ToString("yyyy-MM-dd"));
             DataTable dt = DAL.LoadData(sqlcommand);
             Hashtable ht = new Hashtable();
             for (int i=0;i<dt.Rows.Count;i++)
