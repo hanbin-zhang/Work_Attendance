@@ -150,7 +150,6 @@ namespace WorkAttendance
 
                     // 从这里开始
                     spreadsheetControl1.Document.Worksheets[0].CopyFrom(ws);
-                    spreadsheetControl1.Document.Worksheets[0].Name = "打卡时间表";
 
                     spreadsheetControl1.Options.Save.DefaultFileName = "打卡时间表-" + DateTime.Today.ToString("yyyyMMdd");
                 }
@@ -286,8 +285,11 @@ namespace WorkAttendance
 
 
 
-                   // Workbook wb = new Workbook();
+                    // Workbook wb = new Workbook();
                     //Worksheet ws = wb.Worksheets[0];
+
+                    spreadsheetControl1.Options.Save.DefaultFileName = "月度汇总-" + DateTime.Today.ToString("yyyyMMdd");
+
                 }
 
                 NeedSavePrompt = true;
