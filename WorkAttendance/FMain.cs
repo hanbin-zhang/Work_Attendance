@@ -81,70 +81,10 @@ namespace WorkAttendance
                     Workbook wb = new Workbook();
                     Worksheet ws = wb.Worksheets[0];
 
-                    ws.Name = "打卡记录";
-                    ws.Cells[0, 0].SetValue("打卡记录 " + " 统计日期:" + string.Format("{0} 至 {1}", D1, D2));
-                    ws.Cells[0, 0].Font.Bold = true;
-                    ws.Cells[0, 0].Font.Size = 24;
-                    ws.Cells[0, 0].Fill.BackgroundColor = Color.FromArgb(0xccffff);
-                    ws.Cells[0, 0].Font.Color = Color.FromArgb(0x008080);
-                    ws.Cells[0, 0].Borders.BottomBorder.LineStyle = BorderLineStyle.Thick;
-                    ws.FreezePanes(2, 0);
+                    generateHeader0(ws, DList);
 
-                    CellRange cellrange1 = ws.Range[string.Format("A1:{0}1", excelColumnConverter(3 + DList.Count))];
-                    CellRange cellrange2 = ws.Range[string.Format("A2:{0}2", excelColumnConverter(3 + DList.Count))];
-                    ws.MergeCells(cellrange1);
-                    ws.MergeCells(cellrange2);
+                   
 
-                    //尝试更改一整个range里单元格的border
-                    //cellrange1.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Thick;
-                    //cellrange2.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Medium;
-                    Formatting cellrange1formatting = cellrange1.BeginUpdateFormatting();
-                    cellrange1formatting.Borders.BottomBorder.LineStyle = BorderLineStyle.Thin;
-                    //cellrange1formatting.Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
-
-                    ws.Cells[1, 0].SetValue(string.Format("生成时间：{0}", DateTime.Now.ToString()));
-                    ws.Cells[1, 0].Font.Size = 14;
-                    ws.Cells[1, 0].FillColor = Color.FromArgb(0xccffff);
-                    ws.Cells[1, 0].Font.Color = Color.FromArgb(0x008080);
-                    ws.Cells[1, 0].Borders.TopBorder.Color = Color.Black;
-                    ws.Cells[1, 0].Borders.BottomBorder.Color = Color.Black;
-                    //cellrange2.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Medium;
-                    Formatting cellrange2formatting = cellrange2.BeginUpdateFormatting();
-                    cellrange2formatting.Borders.BottomBorder.LineStyle = BorderLineStyle.Thin;
-                    //cellrange2formatting.Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
-
-                    ws.Cells[2, 0].SetValue("姓名");
-                    ws.Cells[2, 0].Font.Bold = true;
-                    ws.Cells[2, 0].FillColor = Color.FromArgb(0xffffcc);
-                    ws.Cells[2, 0].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
-
-                    ws.Cells[2, 1].SetValue("部门");
-                    ws.Cells[2, 1].Font.Bold = true;
-                    ws.Cells[2, 1].FillColor = Color.FromArgb(0xffffcc);
-                    ws.Cells[2, 1].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
-
-                    ws.Cells[2, 2].SetValue("工号");
-                    ws.Cells[2, 2].Font.Bold = true;
-                    ws.Cells[2, 2].FillColor = Color.FromArgb(0xffffcc);
-                    ws.Cells[2, 2].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
-
-                    //此列起是日期
-                    for (int k=0;k<DList.Count;k++)
-                    {
-                        ws.Cells[2, 3 + k].Font.Bold = true;
-                        ws.Cells[2, 3+k].SetValue(DList[k].Day + "(" + GetCNWeekday( DList[k]) + ")");
-                        if (DList[k].DayOfWeek == DayOfWeek.Saturday || DList[k].DayOfWeek ==  DayOfWeek.Sunday)
-                        {   
-                            ws.Cells[2, 3 + k].FillColor = Color.FromArgb(0xc9edd9);
-                        }
-                        else
-                        {
-                            ws.Cells[2, 3 + k].FillColor = Color.FromArgb(0xffffcc);
-                        }
-                        ws.Cells[2, 3 + k].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
-                    }
-
-                    
 
                     int row_number = 3;
 
@@ -211,7 +151,8 @@ namespace WorkAttendance
                     Hashtable ygStastisticInfo = new Hashtable();
                     Hashtable ygalldaysInfo = new Hashtable();
 
-
+                    Worksheet ws = spreadsheetControl1.Document.Worksheets[0];
+                    generateHeader1(ws);
                     
                     foreach(string name in yg_info.Keys) {
                         Hashtable lookingUpTable = new Hashtable();
@@ -334,8 +275,11 @@ namespace WorkAttendance
                         ygStastisticInfo.Add(name, stastistics);
                     }
 
-                    Workbook wb = new Workbook();
-                    Worksheet ws = wb.Worksheets[0];
+
+
+
+                   // Workbook wb = new Workbook();
+                    //Worksheet ws = wb.Worksheets[0];
                 }
 
                 NeedSavePrompt = true;
@@ -402,7 +346,7 @@ namespace WorkAttendance
 
         private Hashtable yg_info_helper()
         {
-            string sqlcommand = string.Format("SELECT realname, department, yg_no FROM [Wechat1].[dbo].[V_RealList] where CIO_Time>='{0} 0:00:00' AND CIO_Time<='{1} 23:59:59' group by realname, department, yg_no;", dateTimePicker1.Value.ToString("yyyy-MM-dd"), dateTimePicker2.Value.ToString("yyyy-MM-dd"));
+            string sqlcommand = string.Format("SELECT realname, department, yg_no FROM [Wechat].[dbo].[V_RealList] where CIO_Time>='{0} 0:00:00' AND CIO_Time<='{1} 23:59:59' group by realname, department, yg_no;", dateTimePicker1.Value.ToString("yyyy-MM-dd"), dateTimePicker2.Value.ToString("yyyy-MM-dd"));
             DataTable dt = DAL.LoadData(sqlcommand);
             Hashtable ht = new Hashtable();
             for (int i=0;i<dt.Rows.Count;i++)
@@ -414,6 +358,89 @@ namespace WorkAttendance
             }
 
             return ht;
+        }
+
+        private void generateHeader0(Worksheet ws, List<DateTime>DList)
+        {
+            string D1 = dateTimePicker1.Value.ToString("yyyy-MM-dd");
+            string D2 = dateTimePicker2.Value.ToString("yyyy-MM-dd");
+            ws.Name = "打卡记录";
+            ws.Cells[0, 0].SetValue("打卡记录 " + " 统计日期:" + string.Format("{0} 至 {1}", D1, D2));
+            ws.Cells[0, 0].Font.Bold = true;
+            ws.Cells[0, 0].Font.Size = 24;
+            ws.Cells[0, 0].Fill.BackgroundColor = Color.FromArgb(0xccffff);
+            ws.Cells[0, 0].Font.Color = Color.FromArgb(0x008080);
+            ws.Cells[0, 0].Borders.BottomBorder.LineStyle = BorderLineStyle.Thick;
+            ws.FreezePanes(2, 0);
+
+            CellRange cellrange1 = ws.Range[string.Format("A1:{0}1", excelColumnConverter(3 + DList.Count))];
+            CellRange cellrange2 = ws.Range[string.Format("A2:{0}2", excelColumnConverter(3 + DList.Count))];
+            ws.MergeCells(cellrange1);
+            ws.MergeCells(cellrange2);
+
+            //尝试更改一整个range里单元格的border
+            //cellrange1.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Thick;
+            //cellrange2.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Medium;
+            Formatting cellrange1formatting = cellrange1.BeginUpdateFormatting();
+            cellrange1formatting.Borders.BottomBorder.LineStyle = BorderLineStyle.Thin;
+            //cellrange1formatting.Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
+
+            ws.Cells[1, 0].SetValue(string.Format("生成时间：{0}", DateTime.Now.ToString()));
+            ws.Cells[1, 0].Font.Size = 14;
+            ws.Cells[1, 0].FillColor = Color.FromArgb(0xccffff);
+            ws.Cells[1, 0].Font.Color = Color.FromArgb(0x008080);
+            ws.Cells[1, 0].Borders.TopBorder.Color = Color.Black;
+            ws.Cells[1, 0].Borders.BottomBorder.Color = Color.Black;
+            //cellrange2.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Medium;
+            Formatting cellrange2formatting = cellrange2.BeginUpdateFormatting();
+            cellrange2formatting.Borders.BottomBorder.LineStyle = BorderLineStyle.Thin;
+            //cellrange2formatting.Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
+
+            ws.Cells[2, 0].SetValue("姓名");
+            ws.Cells[2, 0].Font.Bold = true;
+            ws.Cells[2, 0].FillColor = Color.FromArgb(0xffffcc);
+            ws.Cells[2, 0].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
+
+            ws.Cells[2, 1].SetValue("部门");
+            ws.Cells[2, 1].Font.Bold = true;
+            ws.Cells[2, 1].FillColor = Color.FromArgb(0xffffcc);
+            ws.Cells[2, 1].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
+
+            ws.Cells[2, 2].SetValue("工号");
+            ws.Cells[2, 2].Font.Bold = true;
+            ws.Cells[2, 2].FillColor = Color.FromArgb(0xffffcc);
+            ws.Cells[2, 2].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
+
+            //此列起是日期
+            for (int k = 0; k < DList.Count; k++)
+            {
+                ws.Cells[2, 3 + k].Font.Bold = true;
+                ws.Cells[2, 3 + k].SetValue(DList[k].Day + "(" + GetCNWeekday(DList[k]) + ")");
+                if (DList[k].DayOfWeek == DayOfWeek.Saturday || DList[k].DayOfWeek == DayOfWeek.Sunday)
+                {
+                    ws.Cells[2, 3 + k].FillColor = Color.FromArgb(0xc9edd9);
+                }
+                else
+                {
+                    ws.Cells[2, 3 + k].FillColor = Color.FromArgb(0xffffcc);
+                }
+                ws.Cells[2, 3 + k].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
+            }
+
+        }
+
+        private void generateHeader1(Worksheet ws)
+        {
+            string D1 = dateTimePicker1.Value.ToString("yyyy-MM-dd");
+            string D2 = dateTimePicker2.Value.ToString("yyyy-MM-dd");
+            ws.Name = "打卡记录";
+            ws.Cells[0, 0].SetValue("打卡记录 " + " 统计日期:" + string.Format("{0} 至 {1}", D1, D2));
+            ws.Cells[0, 0].Font.Bold = true;
+            ws.Cells[0, 0].Font.Size = 24;
+            ws.Cells[0, 0].Fill.BackgroundColor = Color.FromArgb(0xccffff);
+            ws.Cells[0, 0].Font.Color = Color.FromArgb(0x008080);
+            ws.Cells[0, 0].Borders.BottomBorder.LineStyle = BorderLineStyle.Thick;
+            ws.FreezePanes(2, 0);
         }
     }
 }
