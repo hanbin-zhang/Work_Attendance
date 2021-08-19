@@ -158,8 +158,9 @@ namespace WorkAttendance
                     Hashtable ygStastisticInfo = new Hashtable();
                     Hashtable ygalldaysInfo = new Hashtable();
 
-                    Worksheet ws = spreadsheetControl1.Document.Worksheets[0];
-                    generateHeader1(ws);
+                    Workbook wb = new Workbook();
+                    Worksheet ws = wb.Worksheets[0];
+                    generateHeader1(ws,DList);
                     
                     foreach(string name in yg_info.Keys) {
                         Hashtable lookingUpTable = new Hashtable();
@@ -280,7 +281,53 @@ namespace WorkAttendance
 
                         ygalldaysInfo.Add(name, everydayStatus);
                         ygStastisticInfo.Add(name, stastistics);
+
                     }
+
+                    List<String> contents = new List<string> { "attend", "weekends", "late", "leave_early", "noCheckMorning", "noCheckAfternoon" };
+                    int row = 4;
+                    foreach(String name in ygStastisticInfo.Keys)
+                    {
+                        addcontents(row, 0, ws, name);
+                        List<string> info_list = (List<string>)yg_info[name];
+                        //考勤组
+                        ws.Cells[row, 1].SetValue(info_list[0]);
+                        //部门
+                        ws.Cells[row, 2].SetValue(info_list[0]);
+                        //工号
+                        ws.Cells[row, 3].SetValue(info_list[1]);
+                        //出勤，休息，迟到，早退，上班缺卡，下班缺卡
+                        for (int i = 0; i < 6; i++)
+                        {
+                            Hashtable table = (Hashtable)ygStastisticInfo[name];
+                            addcontents(row, 5 + i, ws, table[contents[i]].ToString());
+                        }
+                        //每日内容
+                        for(int i = 0; i < DList.Count; i++)
+                        {
+                            Hashtable allday = (Hashtable)ygalldaysInfo[name];
+                            addcontents(row, 11 + i, ws, allday[(DateTime)DList[i]].ToString());
+                            if(allday[(DateTime)DList[i]] == "旷工")
+                            {
+                                ws.Cells[row,11+i].Fill.BackgroundColor = Color.FromArgb(0xff99cc);
+                            }else if(allday[(DateTime)DList[i]] == "上班迟到")
+                            {
+                                ws.Cells[row, 11 + i].Fill.BackgroundColor = Color.FromArgb(0xccffcc);
+                            }
+                            else if (allday[(DateTime)DList[i]] == "下班早退")
+                            {
+                                ws.Cells[row, 11 + i].Fill.BackgroundColor = Color.FromArgb(0xffffcc);
+                            }
+                            else if (allday[(DateTime)DList[i]] == "下班缺卡" || allday[(DateTime)DList[i]] == "上班缺卡")
+                            {
+                                ws.Cells[row, 11 + i].Fill.BackgroundColor = Color.FromArgb(0xff8080);
+                            }
+                        }
+                        row++;
+                    }
+
+                    spreadsheetControl1.Document.Worksheets[0].CopyFrom(ws);
+                    spreadsheetControl1.Document.Worksheets[0].Name = "月度统计表";
 
 
 
@@ -369,7 +416,7 @@ namespace WorkAttendance
 
             return ht;
         }
-
+        //Write headers for file when 0 is been selected
         private void generateHeader0(Worksheet ws, List<DateTime>DList)
         {
             string D1 = dateTimePicker1.Value.ToString("yyyy-MM-dd");
@@ -438,11 +485,12 @@ namespace WorkAttendance
             }
 
         }
-
-        private void generateHeader1(Worksheet ws)
+        //Write headers for file when 1 is been selected
+        private void generateHeader1(Worksheet ws, List<DateTime>DList)
         {
             string D1 = dateTimePicker1.Value.ToString("yyyy-MM-dd");
             string D2 = dateTimePicker2.Value.ToString("yyyy-MM-dd");
+
             ws.Name = "打卡记录";
             ws.Cells[0, 0].SetValue("打卡记录 " + " 统计日期:" + string.Format("{0} 至 {1}", D1, D2));
             ws.Cells[0, 0].Font.Bold = true;
@@ -450,7 +498,56 @@ namespace WorkAttendance
             ws.Cells[0, 0].Fill.BackgroundColor = Color.FromArgb(0xccffff);
             ws.Cells[0, 0].Font.Color = Color.FromArgb(0x008080);
             ws.Cells[0, 0].Borders.BottomBorder.LineStyle = BorderLineStyle.Thick;
-            ws.FreezePanes(2, 0);
+
+            ws.Cells[1, 0].SetValue(string.Format("生成时间：{0}", DateTime.Now.ToString()));
+            ws.Cells[1, 0].Font.Size = 14;
+            ws.Cells[1, 0].FillColor = Color.FromArgb(0xccffff);
+            ws.Cells[1, 0].Font.Color = Color.FromArgb(0x008080);
+            ws.Cells[1, 0].Borders.TopBorder.Color = Color.Black;
+            ws.Cells[1, 0].Borders.BottomBorder.Color = Color.Black;
+
+            //Set headers for subtitles before "考勤结果"
+            List<String> subtitles = new List<string>{ "姓名", "考勤组", "部门", "工号", "职位", "出勤天数", "休息天数", "迟到次数", "早退次数" ,"上班缺卡次数","下班缺卡次数"};
+            for (int i = subtitles.Count - 1; i >= 0; i--)
+            {
+                addcontents(3, i, ws, subtitles[i]);
+                CellRange range = ws[string.Format("{0}3:{0}4",excelColumnConverter(i+1))];
+                range.Merge();
+            }
+            ws.FreezePanes(3, 0);
+
+            //"考勤结果" Title
+            addcontents(2, subtitles.Count, ws, "考勤结果");
+            ws.Cells[2, subtitles.Count].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
+            ws.Cells[2, subtitles.Count].Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
+            //Merge "考勤结果" cell
+            CellRange kq_range = ws[string.Format("{0}3:{1}3",excelColumnConverter(subtitles.Count+1),excelColumnConverter(subtitles.Count + DList.Count))];
+            kq_range.Merge();
+
+            //output dates
+            for(int i = subtitles.Count; i < subtitles.Count + DList.Count; i++)
+            {
+                ws.Cells[3,i].Font.Bold = true;
+                ws.Cells[3,i].SetValue(DList[i-subtitles.Count].Day + "(" + GetCNWeekday(DList[i-subtitles.Count]) + ")");
+                if (DList[i-subtitles.Count].DayOfWeek == DayOfWeek.Saturday || DList[i-subtitles.Count].DayOfWeek == DayOfWeek.Sunday)
+                {
+                    ws.Cells[3,i].FillColor = Color.FromArgb(0xc9edd9);
+                }
+                else
+                {
+                    ws.Cells[3,i].FillColor = Color.FromArgb(0xffffcc);
+                }
+                ws.Cells[3,i].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
+            }
         }
+
+        // Function That can write contets into specific cell with Bolding;
+        private void addcontents(int row, int col, Worksheet ws,String contents)
+        {
+            ws.Cells[row, col].SetValue(contents);
+            ws.Cells[row, col].Font.Bold = true;
+            ws.Cells[row, col].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
+        }
+        
     }
 }
