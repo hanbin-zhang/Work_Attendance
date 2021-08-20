@@ -85,10 +85,10 @@ namespace WorkAttendance
 
                     generateHeader0(ws, DList, yg_info.Keys.Count);
 
-                    ws.Rows[0].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
+                    //ws.Rows[0].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
                     ws.Rows[0].Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
 
-                    ws.Rows[1].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
+                    //ws.Rows[1].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
                     ws.Rows[1].Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
 
 
@@ -235,7 +235,7 @@ namespace WorkAttendance
                                         morning_status = "上班缺卡";
                                         noCheckMorning += 1;
                                     }
-                                    else if (ts.morningTime.TimeOfDay > Convert.ToDateTime("08:30:00").TimeOfDay)
+                                    else if (ts.morningTime.TimeOfDay > Convert.ToDateTime(Comm.morningTime).TimeOfDay)
                                     {
                                         morning_status = "上班迟到";
                                         late += 1;
@@ -246,7 +246,7 @@ namespace WorkAttendance
                                         afternoon_status = "下班缺卡";
                                         noCheckAfternoon += 1;
                                     }
-                                    else if (ts.afternoonTime.TimeOfDay < Convert.ToDateTime("17:00:00").TimeOfDay)
+                                    else if (ts.afternoonTime.TimeOfDay < Convert.ToDateTime(Comm.afternoonTime).TimeOfDay)
                                     {
                                         afternoon_status = "下班早退";
                                         leave_early += 1;
@@ -308,21 +308,21 @@ namespace WorkAttendance
                         for(int i = 0; i < DList.Count; i++)
                         {
                             Hashtable allday = (Hashtable)ygalldaysInfo[name];
-                            addcontents(row, 11 + i, ws, allday[(DateTime)DList[i]].ToString());
+                            addcontents(row, 25 + i, ws, allday[(DateTime)DList[i]].ToString());
                             if(allday[(DateTime)DList[i]] == "旷工")
                             {
-                                ws.Cells[row,11+i].Fill.BackgroundColor = Color.FromArgb(0xff99cc);
+                                ws.Cells[row,25+i].Fill.BackgroundColor = Color.FromArgb(0xff99cc);
                             }else if(allday[(DateTime)DList[i]] == "上班迟到")
                             {
-                                ws.Cells[row, 11 + i].Fill.BackgroundColor = Color.FromArgb(0xccffcc);
+                                ws.Cells[row, 25 + i].Fill.BackgroundColor = Color.FromArgb(0xccffcc);
                             }
                             else if (allday[(DateTime)DList[i]] == "下班早退")
                             {
-                                ws.Cells[row, 11 + i].Fill.BackgroundColor = Color.FromArgb(0xffffcc);
+                                ws.Cells[row, 25 + i].Fill.BackgroundColor = Color.FromArgb(0xffffcc);
                             }
                             else if (allday[(DateTime)DList[i]] == "下班缺卡" || allday[(DateTime)DList[i]] == "上班缺卡")
                             {
-                                ws.Cells[row, 11 + i].Fill.BackgroundColor = Color.FromArgb(0xff8080);
+                                ws.Cells[row, 25 + i].Fill.BackgroundColor = Color.FromArgb(0xff8080);
                             }
                         }
                         row++;
@@ -453,6 +453,9 @@ namespace WorkAttendance
             ws.MergeCells(cellrange1);
             ws.MergeCells(cellrange2);
 
+            cellrange1.Borders.LeftBorder.LineStyle = BorderLineStyle.Thin;
+            cellrange2.Borders.LeftBorder.LineStyle = BorderLineStyle.Thin;
+
             //尝试更改一整个range里单元格的border
             //cellrange1.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Thick;
             //cellrange2.BeginUpdateFormatting().Borders.InsideHorizontalBorders.LineStyle = BorderLineStyle.Medium;
@@ -501,11 +504,11 @@ namespace WorkAttendance
                 }
                 ws.Cells[2, 3 + k].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
             }
-            CellRange crWHole = ws.Range[string.Format("A1:{0}{1}", excelColumnConverter(3 + DList.Count), yg_num + 3)];
+            CellRange crWHole = ws.Range[string.Format("A3:{0}{1}", excelColumnConverter(3 + DList.Count), yg_num + 3)];
             crWHole.Borders.SetAllBorders(Color.Black, BorderLineStyle.Thin);
             crWHole.Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
             crWHole.Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
-            crWHole.AutoFitColumns();
+            //crWHole.AutoFitColumns();
             crWHole.AutoFitRows();
         }
         //Write headers for file when 1 is been selected
@@ -531,6 +534,21 @@ namespace WorkAttendance
 
             //Set headers for subtitles before "考勤结果"
             List<String> subtitles = new List<string>{ "姓名", "考勤组", "部门", "工号", "职位", "出勤天数", "休息天数", "迟到次数", "早退次数" ,"上班缺卡次数","下班缺卡次数"};
+            List<String> leave_subtitles = new List<string> { "事假(小时)", "调休(小时)", "病假(小时)", "年假(天)", "产假(天)", "陪产假(天)", "婚假(天)", "例假(天)", "丧假(天)", "哺乳假(小时)" };
+            List<String> overtime = new List<string> { "工作日加班", "休息日加班", "节假日加班" };
+
+            foreach(string leave_type in leave_subtitles)
+            {
+                subtitles.Add(leave_type);
+            }
+
+            subtitles.Add("加班-审批单统计");
+
+            foreach(string overtime_type in overtime)
+            {
+                subtitles.Add(overtime_type);
+            }
+
             for (int i = subtitles.Count - 1; i >= 0; i--)
             {   
                 ws.Cells[3, i].FillColor = Color.FromArgb(0xffffcc);

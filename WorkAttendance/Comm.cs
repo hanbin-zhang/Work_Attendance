@@ -11,6 +11,8 @@ namespace WorkAttendance
     public static class Comm
     {
         public static string ConnString = new StreamReader(@"paths\connectionString.txt").ReadLine();
+        public static string morningTime = new StreamReader(@"times\morningTime.txt").ReadLine();
+        public static string afternoonTime = new StreamReader(@"times\afternoonTime.txt").ReadLine();
 
         public static void WriteTextLog(string source, string strMessage)
         {
