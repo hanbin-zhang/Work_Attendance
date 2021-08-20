@@ -302,27 +302,50 @@ namespace WorkAttendance
                         for (int i = 0; i < 6; i++)
                         {
                             Hashtable table = (Hashtable)ygStastisticInfo[name];
-                            addcontents(row, 5 + i, ws, table[contents[i]].ToString());
+                            ws.Cells[row, 5 + i].Value = Convert.ToInt32(table[contents[i]]);
                         }
                         //每日内容
                         for(int i = 0; i < DList.Count; i++)
                         {
                             Hashtable allday = (Hashtable)ygalldaysInfo[name];
                             addcontents(row, 25 + i, ws, allday[(DateTime)DList[i]].ToString());
-                            if(allday[(DateTime)DList[i]] == "旷工")
+
+                            string[] arrayStatus = allday[(DateTime)DList[i]].ToString().Split('，');
+
+                            if (arrayStatus.Length <= 1)
                             {
-                                ws.Cells[row,25+i].Fill.BackgroundColor = Color.FromArgb(0xff99cc);
-                            }else if(allday[(DateTime)DList[i]] == "上班迟到")
-                            {
-                                ws.Cells[row, 25 + i].Fill.BackgroundColor = Color.FromArgb(0xccffcc);
+                                if (allday[(DateTime)DList[i]] == "旷工")
+                                {
+                                    ws.Cells[row, 25 + i].Fill.BackgroundColor = Color.FromArgb(0xff99cc);
+                                }
+                                else if (allday[(DateTime)DList[i]] == "上班迟到")
+                                {
+                                    ws.Cells[row, 25 + i].Fill.BackgroundColor = Color.FromArgb(0xccffcc);
+                                }
+                                else if (allday[(DateTime)DList[i]] == "下班早退")
+                                {
+                                    ws.Cells[row, 25 + i].Fill.BackgroundColor = Color.FromArgb(0xffffcc);
+                                }
+                                else if (allday[(DateTime)DList[i]] == "下班缺卡" || allday[(DateTime)DList[i]] == "上班缺卡")
+                                {
+                                    ws.Cells[row, 25 + i].Fill.BackgroundColor = Color.FromArgb(0xff8080);
+                                }
                             }
-                            else if (allday[(DateTime)DList[i]] == "下班早退")
+
+                            else
                             {
-                                ws.Cells[row, 25 + i].Fill.BackgroundColor = Color.FromArgb(0xffffcc);
-                            }
-                            else if (allday[(DateTime)DList[i]] == "下班缺卡" || allday[(DateTime)DList[i]] == "上班缺卡")
-                            {
-                                ws.Cells[row, 25 + i].Fill.BackgroundColor = Color.FromArgb(0xff8080);
+                                if (arrayStatus.Contains("下班缺卡") || arrayStatus.Contains("上班缺卡"))
+                                {
+                                    ws.Cells[row, 25 + i].Fill.BackgroundColor = Color.FromArgb(0xff8080);
+                                }
+                                else if (arrayStatus.Contains("下班早退"))
+                                {
+                                    ws.Cells[row, 25 + i].Fill.BackgroundColor = Color.FromArgb(0xffffcc);
+                                }
+                                else if (arrayStatus.Contains("上班迟到"))
+                                {
+                                    ws.Cells[row, 25 + i].Fill.BackgroundColor = Color.FromArgb(0xccffcc);
+                                }
                             }
                         }
                         row++;
@@ -568,6 +591,8 @@ namespace WorkAttendance
             CellRange cellrange2 = ws.Range[string.Format("A2:{0}2", excelColumnConverter(subtitles.Count + DList.Count))];
             ws.MergeCells(cellrange1);
             ws.MergeCells(cellrange2);
+            cellrange1.Borders.SetAllBorders(Color.Black, BorderLineStyle.Thin);
+            cellrange2.Borders.SetAllBorders(Color.Black, BorderLineStyle.Thin);
 
             // 请假 wy
             addcontents(2, subtitles.Count - leave_subtitles.Count - overtime.Count - 1, ws, "请假");
@@ -609,8 +634,13 @@ namespace WorkAttendance
                 ws.Cells[3, i].Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
             }
 
-            CellRange wholecellrange = ws.Range[string.Format("A1 : {0}{1}", excelColumnConverter(subtitles.Count+DList.Count), (people_number+4))];
+            CellRange wholecellrange = ws.Range[string.Format("A3 : {0}{1}", excelColumnConverter(subtitles.Count+DList.Count), (people_number+4))];
             wholecellrange.Borders.SetAllBorders(Color.Black, BorderLineStyle.Thin);
+            wholecellrange.Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
+            wholecellrange.Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
+            CellRange contentCellrange = ws.Range[string.Format("A4 : {0}{1}", excelColumnConverter(subtitles.Count + DList.Count), (people_number + 4))];
+            contentCellrange.ColumnWidth = 300;
+            contentCellrange.RowHeight = 150;
         }
 
         // Function That can write contets into specific cell with Bolding;
