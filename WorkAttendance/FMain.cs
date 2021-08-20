@@ -53,6 +53,8 @@ namespace WorkAttendance
 
             splashScreenManager1.ShowWaitForm();
 
+            List<string> sorted_yg_name = yg_name_sort_helper();
+
             string D1 = dateTimePicker1.Value.ToString("yyyy-MM-dd");
             string D2 = dateTimePicker2.Value.ToString("yyyy-MM-dd");
             string SQLForMorning = string.Format("SELECT vr.realname, yg_no, vr.department, min(vr.CIO_Time), CIO_Type FROM V_RealList AS vr where CIO_Type = 1 AND CIO_Time>='{0} 0:00:00' AND CIO_Time<='{1} 23:59:59' Group by realname, cast(CIO_Time as date), CIO_Type, department,yg_no order by department, realname, cast(CIO_Time as date)", D1, D2);
@@ -92,7 +94,7 @@ namespace WorkAttendance
 
                     int row_number = 3;
 
-                    foreach (String keys in morningHashtable.Keys)
+                    foreach (String keys in sorted_yg_name)
                     {   
                         ws.Cells[row_number, 0].SetValue(keys);
                         // 你亲爱的记得推galgame小助手：本段代码用于添加部门和员工号
@@ -160,9 +162,9 @@ namespace WorkAttendance
 
                     Workbook wb = new Workbook();
                     Worksheet ws = wb.Worksheets[0];
-                    generateHeader1(ws,DList);
+                    generateHeader1(ws,DList, yg_info.Keys.Count);
                     
-                    foreach(string name in yg_info.Keys) {
+                    foreach(string name in sorted_yg_name) {
                         Hashtable lookingUpTable = new Hashtable();
 
                         foreach (DateTime dt in DList)
@@ -325,6 +327,9 @@ namespace WorkAttendance
                         }
                         row++;
                     }
+                    
+
+                    
 
                     spreadsheetControl1.Document.Worksheets[0].CopyFrom(ws);
                     spreadsheetControl1.Document.Worksheets[0].Name = "月度统计表";
@@ -403,7 +408,7 @@ namespace WorkAttendance
 
         private Hashtable yg_info_helper()
         {
-            string sqlcommand = string.Format("SELECT realname, department, yg_no FROM V_RealList where CIO_Time>='{0} 0:00:00' AND CIO_Time<='{1} 23:59:59' group by realname, department, yg_no;", dateTimePicker1.Value.ToString("yyyy-MM-dd"), dateTimePicker2.Value.ToString("yyyy-MM-dd"));
+            string sqlcommand = string.Format("SELECT realname, department, yg_no FROM V_RealList where CIO_Time>='{0} 0:00:00' AND CIO_Time<='{1} 23:59:59' group by realname, department, yg_no ORDER BY department, realname;", dateTimePicker1.Value.ToString("yyyy-MM-dd"), dateTimePicker2.Value.ToString("yyyy-MM-dd"));
             DataTable dt = DAL.LoadData(sqlcommand);
             Hashtable ht = new Hashtable();
             for (int i=0;i<dt.Rows.Count;i++)
@@ -416,6 +421,19 @@ namespace WorkAttendance
 
             return ht;
         }
+
+        private List<string> yg_name_sort_helper ()
+        {
+            List<string> list = new List<string>();
+            string sqlcommand = string.Format("SELECT realname, department, yg_no FROM V_RealList where CIO_Time>='{0} 0:00:00' AND CIO_Time<='{1} 23:59:59' group by realname, department, yg_no ORDER BY department, realname;", dateTimePicker1.Value.ToString("yyyy-MM-dd"), dateTimePicker2.Value.ToString("yyyy-MM-dd"));
+            DataTable dt = DAL.LoadData(sqlcommand);
+            for (int i = 0; i < dt.Rows.Count; i++)
+            {
+                list.Add(dt.Rows[i][0].ToString());
+            }
+            return list;
+        }
+
         //Write headers for file when 0 is been selected
         private void generateHeader0(Worksheet ws, List<DateTime>DList)
         {
@@ -486,7 +504,7 @@ namespace WorkAttendance
 
         }
         //Write headers for file when 1 is been selected
-        private void generateHeader1(Worksheet ws, List<DateTime>DList)
+        private void generateHeader1(Worksheet ws, List<DateTime>DList, int people_number)
         {
             string D1 = dateTimePicker1.Value.ToString("yyyy-MM-dd");
             string D2 = dateTimePicker2.Value.ToString("yyyy-MM-dd");
@@ -509,23 +527,33 @@ namespace WorkAttendance
             //Set headers for subtitles before "考勤结果"
             List<String> subtitles = new List<string>{ "姓名", "考勤组", "部门", "工号", "职位", "出勤天数", "休息天数", "迟到次数", "早退次数" ,"上班缺卡次数","下班缺卡次数"};
             for (int i = subtitles.Count - 1; i >= 0; i--)
-            {
+            {   
+                ws.Cells[3, i].FillColor = Color.FromArgb(0xffffcc);
                 addcontents(3, i, ws, subtitles[i]);
                 CellRange range = ws[string.Format("{0}3:{0}4",excelColumnConverter(i+1))];
                 range.Merge();
+                range.Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
+                range.Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
             }
             ws.FreezePanes(3, 0);
 
+            CellRange cellrange1 = ws.Range[string.Format("A1:{0}1", excelColumnConverter(subtitles.Count + DList.Count))];
+            CellRange cellrange2 = ws.Range[string.Format("A2:{0}2", excelColumnConverter(subtitles.Count + DList.Count))];
+            ws.MergeCells(cellrange1);
+            ws.MergeCells(cellrange2);
+
             //"考勤结果" Title
             addcontents(2, subtitles.Count, ws, "考勤结果");
+            ws.Cells[2, subtitles.Count].FillColor = Color.FromArgb(0xffffcc);
             ws.Cells[2, subtitles.Count].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
             ws.Cells[2, subtitles.Count].Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
             //Merge "考勤结果" cell
             CellRange kq_range = ws[string.Format("{0}3:{1}3",excelColumnConverter(subtitles.Count+1),excelColumnConverter(subtitles.Count + DList.Count))];
             kq_range.Merge();
+            
 
             //output dates
-            for(int i = subtitles.Count; i < subtitles.Count + DList.Count; i++)
+            for (int i = subtitles.Count; i < subtitles.Count + DList.Count; i++)
             {
                 ws.Cells[3,i].Font.Bold = true;
                 ws.Cells[3,i].SetValue(DList[i-subtitles.Count].Day + "(" + GetCNWeekday(DList[i-subtitles.Count]) + ")");
@@ -538,7 +566,12 @@ namespace WorkAttendance
                     ws.Cells[3,i].FillColor = Color.FromArgb(0xffffcc);
                 }
                 ws.Cells[3,i].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
+                ws.Cells[3, i].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
+                ws.Cells[3, i].Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
             }
+
+            CellRange wholecellrange = ws.Range[string.Format("A1 : {0}{1}", excelColumnConverter(subtitles.Count+DList.Count), (people_number+4))];
+            wholecellrange.Borders.SetAllBorders(Color.Black, BorderLineStyle.Thin);
         }
 
         // Function That can write contets into specific cell with Bolding;
@@ -547,6 +580,9 @@ namespace WorkAttendance
             ws.Cells[row, col].SetValue(contents);
             ws.Cells[row, col].Font.Bold = true;
             ws.Cells[row, col].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
+            ws.Cells[row, col].Alignment.WrapText = true;
+            ws.Cells[row, col].Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
+            ws.Cells[row, col].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
         }
         
     }
