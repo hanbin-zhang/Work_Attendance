@@ -83,7 +83,7 @@ namespace WorkAttendance
                     Workbook wb = new Workbook();
                     Worksheet ws = wb.Worksheets[0];
 
-                    generateHeader0(ws, DList);
+                    generateHeader0(ws, DList, yg_info.Keys.Count);
 
                     ws.Rows[0].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
                     ws.Rows[0].Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
@@ -435,7 +435,7 @@ namespace WorkAttendance
         }
 
         //Write headers for file when 0 is been selected
-        private void generateHeader0(Worksheet ws, List<DateTime>DList)
+        private void generateHeader0(Worksheet ws, List<DateTime>DList, int yg_num)
         {
             string D1 = dateTimePicker1.Value.ToString("yyyy-MM-dd");
             string D2 = dateTimePicker2.Value.ToString("yyyy-MM-dd");
@@ -501,7 +501,12 @@ namespace WorkAttendance
                 }
                 ws.Cells[2, 3 + k].Borders.RightBorder.LineStyle = BorderLineStyle.Thin;
             }
-
+            CellRange crWHole = ws.Range[string.Format("A1:{0}{1}", excelColumnConverter(3 + DList.Count), yg_num + 3)];
+            crWHole.Borders.SetAllBorders(Color.Black, BorderLineStyle.Thin);
+            crWHole.Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
+            crWHole.Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
+            crWHole.AutoFitColumns();
+            crWHole.AutoFitRows();
         }
         //Write headers for file when 1 is been selected
         private void generateHeader1(Worksheet ws, List<DateTime>DList, int people_number)
