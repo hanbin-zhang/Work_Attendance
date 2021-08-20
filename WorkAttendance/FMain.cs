@@ -288,7 +288,7 @@ namespace WorkAttendance
 
                     List<String> contents = new List<string> { "attend", "weekends", "late", "leave_early", "noCheckMorning", "noCheckAfternoon" };
                     int row = 4;
-                    foreach(String name in ygStastisticInfo.Keys)
+                    foreach(String name in sorted_yg_name)
                     {
                         addcontents(row, 0, ws, name);
                         List<string> info_list = (List<string>)yg_info[name];
