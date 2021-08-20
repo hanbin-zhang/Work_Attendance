@@ -550,13 +550,17 @@ namespace WorkAttendance
             }
 
             for (int i = subtitles.Count - 1; i >= 0; i--)
-            {   
+            {
                 ws.Cells[3, i].FillColor = Color.FromArgb(0xffffcc);
                 addcontents(3, i, ws, subtitles[i]);
-                CellRange range = ws[string.Format("{0}3:{0}4",excelColumnConverter(i+1))];
-                range.Merge();
-                range.Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
-                range.Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
+
+                if (!(leave_subtitles.Contains(subtitles[i]) || overtime.Contains(subtitles[i])))
+                {
+                    CellRange range = ws[string.Format("{0}3:{0}4", excelColumnConverter(i + 1))];
+                    range.Merge();
+                    range.Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
+                    range.Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
+                }
             }
             ws.FreezePanes(3, 0);
 
@@ -564,6 +568,18 @@ namespace WorkAttendance
             CellRange cellrange2 = ws.Range[string.Format("A2:{0}2", excelColumnConverter(subtitles.Count + DList.Count))];
             ws.MergeCells(cellrange1);
             ws.MergeCells(cellrange2);
+
+            // 请假 wy
+            addcontents(2, subtitles.Count - leave_subtitles.Count - overtime.Count - 1, ws, "请假");
+            ws.Cells[2, subtitles.Count - leave_subtitles.Count - overtime.Count - 1].FillColor = Color.FromArgb(0xffffcc);
+            CellRange cellrange3 = ws.Range["L3:U3"];
+            ws.MergeCells(cellrange3);
+            
+            //加班
+            addcontents(2, subtitles.Count - overtime.Count, ws, "加班时长-按加班规则计算");
+            ws.Cells[2, subtitles.Count - overtime.Count].FillColor = Color.FromArgb(0xffffcc);
+            CellRange cellrange4 = ws.Range["W3:Y3"];
+            ws.MergeCells(cellrange4);
 
             //"考勤结果" Title
             addcontents(2, subtitles.Count, ws, "考勤结果");
@@ -574,7 +590,7 @@ namespace WorkAttendance
             CellRange kq_range = ws[string.Format("{0}3:{1}3",excelColumnConverter(subtitles.Count+1),excelColumnConverter(subtitles.Count + DList.Count))];
             kq_range.Merge();
             
-
+            
             //output dates
             for (int i = subtitles.Count; i < subtitles.Count + DList.Count; i++)
             {
