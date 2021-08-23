@@ -141,7 +141,7 @@ namespace WorkAttendance
                             }
                             
                             ws.Cells.RowHeight = 200;
-                            ws.Cells.Alignment.WrapText = true;
+                            ws.Cells[row_number, 3 + i].Alignment.WrapText = true;
                             ws.Cells[row_number, 3 + i].SetValue(cell);
                         }
                         ws.Rows[row_number].Alignment.Horizontal = SpreadsheetHorizontalAlignment.Center;
@@ -149,7 +149,7 @@ namespace WorkAttendance
                         row_number++;
                     }
 
-
+                    ws.Columns[1].AutoFitColumns();
                     // 从这里开始
                     spreadsheetControl1.Document.Worksheets[0].CopyFrom(ws);
 
@@ -533,6 +533,10 @@ namespace WorkAttendance
             crWHole.Alignment.Vertical = SpreadsheetVerticalAlignment.Center;
             //crWHole.AutoFitColumns();
             crWHole.AutoFitRows();
+
+            CellRange colonm1 = ws.Range[string.Format("B4:B{0}", (3 + yg_num))];
+            colonm1.Alignment.WrapText = false;
+            ws.Columns[1].AutoFit();
         }
         //Write headers for file when 1 is been selected
         private void generateHeader1(Worksheet ws, List<DateTime>DList, int people_number)
